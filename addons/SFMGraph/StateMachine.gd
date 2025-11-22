@@ -42,18 +42,18 @@ class NodeData:
 				newExports[export.name].dirty = exports[export.name].value != export.value
 		exports = newExports
 	
+	func dereference_exports():
+		var newExports: Dictionary = {}
+		for export in exports.values():
+			newExports[export.name] = exports[export.name].duplicate()
+		exports = newExports
+	
 	static func create_starting() -> NodeData:
 		var newRes := NodeData.new()
 		newRes.id = -2
 		newRes.state = null
 		newRes.outputs.append(-1)
 		return newRes
-	
-	func dereference_exports():
-		var newExports: Dictionary = {}
-		for export in exports.values():
-			newExports[export.name] = exports[export.name].duplicate()
-		exports = newExports
 
 
 @export var states: Array[StateResource] = []:
@@ -99,7 +99,6 @@ func _init():
 	_jumpState.ignoreJumpGuard = true
 	_jumpState.scriptResource = load(workingDir + "/JumpState.gd")
 	_jumpState.name = "JUMP"
-	print(_jumpState)
 
 
 func _create_node_resource(id: int, stateID: int, pos: Vector2) -> NodeData:

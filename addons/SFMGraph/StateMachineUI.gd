@@ -31,7 +31,8 @@ var target: StateMachineNode = null:
 
 var targetResource: StateMachine = null:
 	set(value):
-		if targetResource == value: return
+		if targetResource == value: 
+			return
 		if targetResource != null:
 			targetResource._states_added.disconnect(on_states_added)
 			targetResource._states_deleted.disconnect(on_states_deleted)
@@ -45,7 +46,8 @@ var targetResource: StateMachine = null:
 			targetResource._state_name_changed.connect(on_state_change_name)
 			targetResource._state_script_changed.connect(on_state_change_script)
 			targetResource._state_color_changed.connect(on_state_change_color)
-		if is_node_ready(): configure()
+		if is_node_ready(): 
+			configure()
 
 var undoRedo: EditorUndoRedoManager
 
@@ -54,7 +56,6 @@ var undoRedo: EditorUndoRedoManager
 
 
 func _ready():
-	var example := NodePath("root/branch1/branch2/leaf")
 	graph.popup_request.connect(on_mouse_interaction)
 	graph.connection_request.connect(on_connection)
 	graph.disconnection_request.connect(on_disconnection)
@@ -107,7 +108,7 @@ func clean():
 	graph.clear_connections()
 	selected_nodes.clear()
 	clipboard.clear()
-	for node in graph.get_children(): 
+	for node in get_graph_children(): 
 		graph.remove_child(node)
 		node.queue_free()
 	$newNodePop/ItemList.clear()
@@ -162,7 +163,7 @@ func on_states_added(ids: Array[int]):
 
 
 func on_states_deleted(ids: Array[int]):
-	for node: StateNode in graph.get_children():
+	for node: StateNode in get_graph_children():
 		if node.resource.state == null: continue
 		if node.resource.state.id in ids:
 			delete_node_no_undo(node.resource.id)
@@ -170,7 +171,7 @@ func on_states_deleted(ids: Array[int]):
 
 
 func on_state_change_name(id: int):
-	for node in graph.get_children():
+	for node in get_graph_children():
 		if node.resource.state == null: continue
 		if node.resource.state.id == id:
 			node.title = node.resource.state.name
@@ -182,7 +183,7 @@ func on_state_change_script(id: int):
 	if not state.is_valid(): 
 		on_states_deleted([id])
 		return
-	for node in graph.get_children():
+	for node in get_graph_children():
 		if node.resource.state == null: continue
 		if node.resource.state.id == id:
 			node.resource.recalculate_script_data()
@@ -192,7 +193,7 @@ func on_state_change_script(id: int):
 
 
 func on_state_change_color(id: int):
-	for node in graph.get_children():
+	for node in get_graph_children():
 		if node.resource.state == null: continue
 		if node.resource.state.id == id:
 			node.update_colors()
@@ -245,7 +246,7 @@ func on_node_deselected(node: Node):
 
 
 func set_selection(ids: Array[int]):
-	for node in graph.get_children():
+	for node in get_graph_children():
 		if node.resource.id in ids:
 			node.selected = true
 		else:
@@ -322,6 +323,10 @@ func on_popup_request():
 	$newNodePop.position = mouse_pos + get_screen_position() - ($newNodePop.size / 2.0)
 	if $newNodePop/ItemList.get_selected_items().is_empty():
 		dialogAddButton.disabled = true
+	if inputNodeRequest:
+		$newNodePop/ItemList.set_item_disabled(0, true)
+		$newNodePop/ItemList.deselect_all()
+		dialogAddButton.disabled = true
 	$newNodePop.show()
 	dialogAddButton.release_focus()
 
@@ -334,6 +339,7 @@ func on_item_selected(index: int):
 
 
 func on_confirmed():
+	$newNodePop/ItemList.set_item_disabled(0, false)
 	create_node()
 #endregion
 
@@ -540,7 +546,7 @@ func duplicate_nodes(nodes: Array[StateMachine.NodeData], offset: Vector2, is_pa
 
 
 func find_node_from_id(nodeID: int) -> StateNode:
-	for node in graph.get_children():
+	for node in get_graph_children():
 		if node.resource.id == nodeID: return node
 	return null
 
@@ -556,3 +562,11 @@ func get_node_name(source) -> String:
 		var node := find_node_from_id(source)
 		return node.name
 	return ""
+
+
+func get_graph_children() -> Array[StateNode]:
+	var children: Array[StateNode] = []
+	for child in graph.get_children():
+		if child is StateNode:
+			children.append(child)
+	return children
