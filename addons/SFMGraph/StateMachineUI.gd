@@ -209,7 +209,8 @@ func prune_excess_connections(node: StateNode, newOutputSize: int):
 
 func on_force_script_reload():
 	for state in targetResource.states:
-		if state != null: state.state = state.state
+		if state != null:
+			state.scriptResource = state.scriptResource
 
 
 var item_ids: Array[int] = []
